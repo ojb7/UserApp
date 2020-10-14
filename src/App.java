@@ -5,25 +5,27 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLOutput;
 
 
 public class App extends javafx.application.Application {
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
-        System.out.println("Starting application");
+    public void start(Stage primaryStage){
+        System.out.println("Starting application...");
         URL r = getClass().getClassLoader().getResource("layout.fxml");
         Parent root = null;
         try {
             root = FXMLLoader.load(r);
+            System.out.println("Application started succesfully!");
         } catch (IOException e) {
-            System.out.println("Error while loading FXML");
+            System.out.println("Error while loading FXML...");
             return;
         }
 
         primaryStage.setTitle("UGV Application");
-        Image anotherIcon = new Image("Images/ntnu.png");
-        primaryStage.getIcons().add(anotherIcon);
+        Image ntnuIcon = new Image("Images/ntnu.png");
+        primaryStage.getIcons().add(ntnuIcon);
         primaryStage.setScene(new Scene(root, 900, 600));
         primaryStage.show();
     }

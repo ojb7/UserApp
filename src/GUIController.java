@@ -28,6 +28,12 @@ public class GUIController {
     @FXML
     private Rectangle wButtonIndicator;
     @FXML
+    private Rectangle aButtonIndicator;
+    @FXML
+    private Rectangle sButtonIndicator;
+    @FXML
+    private Rectangle dButtonIndicator;
+    @FXML
     private Button stopButton;
     @FXML
     private Button startButton;
@@ -58,7 +64,7 @@ public class GUIController {
         this.hostField.setDisable(false);
         this.portField.setDisable(false);
 
-        System.out.println("Initialize GUI controller");
+        System.out.println("Initialize GUI controller...");
     }
 
 
@@ -70,7 +76,8 @@ public class GUIController {
         if(keyPressed.equalsIgnoreCase("S")) this.backward = true;
         if(keyPressed.equalsIgnoreCase("D")) this.right = true;
         System.out.println("Key pressed: " + keyPressed);
-        sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        //sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        updateWasdInGui(this.forward, this.left, this.backward, this.right);
     }
 
     @FXML
@@ -81,7 +88,39 @@ public class GUIController {
         if(keyReleased.equalsIgnoreCase("S")) this.backward = false;
         if(keyReleased.equalsIgnoreCase("D")) this.right = false;
         System.out.println("Key released: " + keyReleased);
-        sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        //sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        updateWasdInGui(this.forward, this.left, this.backward, this.right);
+    }
+
+    private void updateWasdInGui(boolean w, boolean a, boolean s, boolean d){
+        if(w){
+            wButtonIndicator.setFill(Color.BLUE);
+            System.out.println("Blue");
+        } else{
+            wButtonIndicator.setFill(Color.GREY);
+            System.out.println("Grey");
+        }
+        if(a){
+            aButtonIndicator.setFill(Color.BLUE);
+            System.out.println("Blue");
+        } else{
+            aButtonIndicator.setFill(Color.GREY);
+            System.out.println("Grey");
+        }
+        if(s){
+            sButtonIndicator.setFill(Color.BLUE);
+            System.out.println("Blue");
+        } else{
+            sButtonIndicator.setFill(Color.GREY);
+            System.out.println("Grey");
+        }
+        if(d){
+            dButtonIndicator.setFill(Color.BLUE);
+            System.out.println("Blue");
+        } else{
+            dButtonIndicator.setFill(Color.GREY);
+            System.out.println("Grey");
+        }
     }
 
     @FXML
