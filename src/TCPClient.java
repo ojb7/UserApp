@@ -29,6 +29,8 @@ public class TCPClient implements Runnable{
             this.toServer = new ObjectOutputStream(out);
             this.fromServer = new BufferedReader(new InputStreamReader(in));
             System.out.println("Connection established!");
+            tellServerUser();
+            System.out.println("Telling server that this is an user client");
             return true;
         } catch (UnknownHostException e) {
             this.lastError = "Could not connect to host...";
@@ -81,13 +83,21 @@ public class TCPClient implements Runnable{
      * Sends a command to the UGV server
      * @param cmd Command to be sent to server
      */
-    public void sendCommand(Command cmd){
+    public synchronized void sendCommand(Command cmd){
         try {
             this.toServer.writeObject(cmd);
-            System.out.println("Sending command: " + cmd);
+            System.out.println("Sending command: " + cmd.getCommand());
         } catch (IOException e) {
             System.out.println("Could not write object.");
         }
+    }
+
+    /**
+     * Tell server that this is an User Client
+     */
+    private void tellServerUser(){
+        Command cmd = new Command("User",0, null);
+        sendCommand(cmd);
     }
 
     @Override

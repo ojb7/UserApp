@@ -63,7 +63,7 @@
                   <Pane layoutX="238.0" layoutY="196.0" prefHeight="70.0" prefWidth="226.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="238.0">
                      <children>
                         <Slider fx:id="speedValue" layoutY="21.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" />
-                        <Label alignment="CENTER" layoutX="3.0" prefHeight="21.0" prefWidth="218.0" text="Speed" textAlignment="CENTER">
+                        <Label alignment="CENTER" layoutX="3.0" onMouseReleased="#speedValueControl" prefHeight="21.0" prefWidth="218.0" text="Speed" textAlignment="CENTER">
                            <font>
                               <Font size="15.0" />
                            </font>

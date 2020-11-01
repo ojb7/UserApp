@@ -1,18 +1,12 @@
-
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.event.ActionEvent;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-
-import java.io.IOException;
-
-
 
 public class GUIController {
     @FXML
@@ -47,11 +41,16 @@ public class GUIController {
     private boolean backward = false;
     private boolean right = false;
     private boolean left = false;
+    // UGV movement directions shadow
     private boolean forward0 = false;
     private boolean backward0 = false;
     private boolean right0 = false;
     private boolean left0 = false;
 
+    // Speed value of UGV
+    int speed = 0;
+
+    // Connection information
     private static final String HOST = "10.22.192.92";
     private static final String HOST_STASJ = "83.243.240.94";
     private static final String PORT = "42069";
@@ -76,7 +75,7 @@ public class GUIController {
         if(keyPressed.equalsIgnoreCase("S")) this.backward = true;
         if(keyPressed.equalsIgnoreCase("D")) this.right = true;
         System.out.println("Key pressed: " + keyPressed);
-        //sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        sendKeyCommand(this.forward, this.left, this.backward, this.right);
         updateWasdInGui(this.forward, this.left, this.backward, this.right);
     }
 
@@ -88,7 +87,7 @@ public class GUIController {
         if(keyReleased.equalsIgnoreCase("S")) this.backward = false;
         if(keyReleased.equalsIgnoreCase("D")) this.right = false;
         System.out.println("Key released: " + keyReleased);
-        //sendKeyCommand(this.forward, this.left, this.backward, this.right);
+        sendKeyCommand(this.forward, this.left, this.backward, this.right);
         updateWasdInGui(this.forward, this.left, this.backward, this.right);
     }
 
@@ -124,8 +123,8 @@ public class GUIController {
     }
 
     @FXML
-    private void speedValueControl(DragEvent event){
-        int speed = (int)speedValue.getValue();
+    private void speedValueControl(){
+        this.speed = (int) speedValue.getValue();
         System.out.println("Speed value: " + speed);
     }
 
@@ -138,10 +137,18 @@ public class GUIController {
         this.forward0 = forward;
         this.left0 = left;
         this.backward0 = backward;
-        this.right = right;
+        this.right0 = right;
+
+        boolean[] wasd = new boolean[4];
+        wasd[0] = forward;
+        wasd[1] = left;
+        wasd[2] = backward;
+        wasd[3] = right;
 
         if (this.tcpClient.isConnectionActive() && change) {
-            Command cmd = new KeyCommand(forward, left, backward, right);
+            System.out.println("Directions: " + forward + ", " + left + ", " + backward + ", " + right);
+            System.out.println("Speed: " + this.speed);
+            Command cmd = new Command("directions", this.speed, wasd);
             this.tcpClient.sendCommand(cmd);
         }
     }
@@ -161,15 +168,15 @@ public class GUIController {
     @FXML
     void startUgv(ActionEvent event) {
         System.out.println("Sending: start");
-        //Command cmd = new Command("Start");
-        //this.tcpClient.sendCommand(cmd);
+        Command cmd = new Command("start", 0, null);
+        this.tcpClient.sendCommand(cmd);
     }
 
     @FXML
     void stopUgv(ActionEvent event) {
         System.out.println("Sending: stop");
-        //Command cmd = new Command("Stop");
-        //this.tcpClient.sendCommand(cmd);
+        Command cmd = new Command("stop", 0, null);
+        this.tcpClient.sendCommand(cmd);
     }
 
     @FXML
