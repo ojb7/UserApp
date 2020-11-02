@@ -41,6 +41,8 @@ public class GUIController {
     private ListView<String> listOfUGVs;
     @FXML
     private Button selectUgvButton;
+    @FXML
+    private Button refrUgvListButton;
 
     private TCPClient tcpClient;
     private Thread pollUGVsThread;
@@ -57,12 +59,19 @@ public class GUIController {
     private boolean left0 = false;
 
     // Speed value of UGV
-    int speed = 0;
+    private int speed = 0;
 
     // Connection information
     private static final String HOST = "10.22.192.92";
     private static final String HOST_STASJ = "83.243.240.94";
     private static final String PORT = "42069";
+
+    // UGV ID set from list of UGV's from server
+    int UgvId = -1;
+
+
+    private Thread userPollThread;
+
 
     ObservableList<String> obsListUgv;
 
@@ -80,30 +89,73 @@ public class GUIController {
 
     @FXML
     void selectUgvFromList(ActionEvent event) {
-        String ugvIdSelected = listOfUGVs.getSelectionModel().getSelectedItem();
-        int ugv = Integer.parseInt(ugvIdSelected);
-        System.out.println("Sending: Selected UGV " + ugv);
-        Command cmd = new Command("Selected UGV", ugv, null, null);
-        this.tcpClient.sendCommand(cmd);
+        if (this.tcpClient.isConnectionActive()) {
+            String ugvIdSelected = listOfUGVs.getSelectionModel().getSelectedItem();
+            int ugv = Integer.parseInt(ugvIdSelected);
+            System.out.println("Sending: Selected UGV " + ugv);
+            Command cmd = new Command("Selected UGV", ugv, null, null);
+            this.tcpClient.sendCommand(cmd);
+        }
     }
 
 
+    @FXML
+    void refreshUgvList(ActionEvent event) {
+        if (this.tcpClient.isConnectionActive()) {
+            System.out.println("Trying to refresh UGV list..");
+            startPollingUGV();
+        }
+    }
+
+
+//    private void startPollingUGV() {
+//        Command cmdToServer = new Command("UGVList", 0, null, null);
+//        tcpClient.sendCommand(cmdToServer);
+//        Command cmdFromServer = this.tcpClient.receiveCommand();
+//        String cmd = cmdFromServer.getCommand();
+//
+//        if (cmd != null) {
+//            if (cmd.equalsIgnoreCase("listUGV")) {
+//                List<String> UgvId = cmdFromServer.getUGVs();
+//                System.out.println("-----------------------List from server: " + UgvId);
+//                obsListUgv = FXCollections.observableArrayList(UgvId);
+//                listOfUGVs.setItems(obsListUgv);
+//                listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+//            }
+//        }
+//    }
+
 
     private void startPollingUGV() {
-        Command cmdFromServer = null;
-        String cmd = null;
-        List<String> UgvId = null;
+        if (this.userPollThread == null) {
+            this.userPollThread = new Thread(() -> {
+                long threadId = Thread.currentThread().getId();
+                System.out.println("Started UGV polling in Thread " + threadId);
+                while (this.tcpClient.isConnectionActive()) {
+                    Command cmd = new Command("UGVlist", 0, null, null);
+                    this.tcpClient.sendCommand(cmd);
+                    Command cmdFromServer = this.tcpClient.receiveCommand();
+                    String cmdString = cmdFromServer.getCommand();
 
-        cmdFromServer = this.tcpClient.receiveCommand();
-        cmd = cmdFromServer.getCommand();
-
-        if (cmd != null) {
-            if (cmd.equalsIgnoreCase("listUGV")) {
-                UgvId = cmdFromServer.getUGVs();
-                obsListUgv = FXCollections.observableArrayList(UgvId);
-                listOfUGVs.setItems(obsListUgv);
-                listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-            }
+                    if (cmdString != null) {
+                        if (cmdString.equalsIgnoreCase("listUGV")) {
+                            List<String> UgvId = cmdFromServer.getUGVs();
+                            System.out.println("-----------------------List from server: " + UgvId);
+                            obsListUgv = FXCollections.observableArrayList(UgvId);
+                            listOfUGVs.setItems(obsListUgv);
+                            listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                        }
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }
+                System.out.println("User polling thread " + threadId + " exiting...");
+                this.userPollThread = null;
+            });
+            this.userPollThread.start();
         }
     }
 
@@ -244,10 +296,17 @@ public class GUIController {
         this.portField.setDisable(true);
         boolean connected = this.tcpClient.connect(host, Integer.parseInt(port));
         if (connected) {
+            userClientToServer();
+            System.out.println("Telling server that this is an user client...");
             startPollingUGV();
             this.connectButton.setText("Connected!");
             this.connectButton.setTextFill(Color.GREEN);
         }
+    }
+
+    private void userClientToServer() {
+        Command cmd = new Command("User", 0, null, null);
+        this.tcpClient.sendCommand(cmd);
     }
 
 
