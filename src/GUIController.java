@@ -1,12 +1,16 @@
+import javafx.beans.Observable;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.event.ActionEvent;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GUIController {
     @FXML
@@ -33,8 +37,13 @@ public class GUIController {
     private Button startButton;
     @FXML
     private Slider speedValue;
+    @FXML
+    private ListView<String> listOfUGVs;
+    @FXML
+    private Button selectUgvButton;
 
     private TCPClient tcpClient;
+    private Thread pollUGVsThread;
 
     // UGV movement directions
     private boolean forward = false;
@@ -55,85 +64,121 @@ public class GUIController {
     private static final String HOST_STASJ = "83.243.240.94";
     private static final String PORT = "42069";
 
+    ObservableList<String> obsListUgv;
+
     @FXML
     public void initialize() {
+        System.out.println("Initialize GUI controller...");
+
+        this.tcpClient = new TCPClient();
         this.hostField.setText(HOST_STASJ);
         this.portField.setText(PORT);
         this.disconnectButton.setDisable(true);
         this.hostField.setDisable(false);
         this.portField.setDisable(false);
+    }
 
-        System.out.println("Initialize GUI controller...");
+    @FXML
+    void selectUgvFromList(ActionEvent event) {
+        String ugvIdSelected = listOfUGVs.getSelectionModel().getSelectedItem();
+        int ugv = Integer.parseInt(ugvIdSelected);
+        System.out.println("Sending: Selected UGV " + ugv);
+        Command cmd = new Command("Selected UGV", ugv, null, null);
+        this.tcpClient.sendCommand(cmd);
+    }
+
+
+
+    private void startPollingUGV() {
+        Command cmdFromServer = null;
+        String cmd = null;
+        List<String> UgvId = null;
+
+        cmdFromServer = this.tcpClient.receiveCommand();
+        cmd = cmdFromServer.getCommand();
+
+        if (cmd != null) {
+            if (cmd.equalsIgnoreCase("listUGV")) {
+                UgvId = cmdFromServer.getUGVs();
+                obsListUgv = FXCollections.observableArrayList(UgvId);
+                listOfUGVs.setItems(obsListUgv);
+                listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+            }
+        }
     }
 
 
     @FXML
-    private void handleKeyPressed(KeyEvent event){
-        String keyPressed = event.getText();
-        if(keyPressed.equalsIgnoreCase("W")) this.forward = true;
-        if(keyPressed.equalsIgnoreCase("A")) this.left = true;
-        if(keyPressed.equalsIgnoreCase("S")) this.backward = true;
-        if(keyPressed.equalsIgnoreCase("D")) this.right = true;
-        System.out.println("Key pressed: " + keyPressed);
-        sendKeyCommand(this.forward, this.left, this.backward, this.right);
-        updateWasdInGui(this.forward, this.left, this.backward, this.right);
+    private void handleKeyPressed(KeyEvent event) {
+        if (this.tcpClient.isConnectionActive()) {
+            String keyPressed = event.getText();
+            if (keyPressed.equalsIgnoreCase("W")) this.forward = true;
+            if (keyPressed.equalsIgnoreCase("A")) this.left = true;
+            if (keyPressed.equalsIgnoreCase("S")) this.backward = true;
+            if (keyPressed.equalsIgnoreCase("D")) this.right = true;
+            System.out.println("Key pressed: " + keyPressed);
+            sendKeyCommand(this.forward, this.left, this.backward, this.right);
+            updateWasdInGui(this.forward, this.left, this.backward, this.right);
+        }
     }
 
     @FXML
-    private void handleKeyReleased(KeyEvent event){
-        String keyReleased = event.getText();
-        if(keyReleased.equalsIgnoreCase("W")) this.forward = false;
-        if(keyReleased.equalsIgnoreCase("A")) this.left = false;
-        if(keyReleased.equalsIgnoreCase("S")) this.backward = false;
-        if(keyReleased.equalsIgnoreCase("D")) this.right = false;
-        System.out.println("Key released: " + keyReleased);
-        sendKeyCommand(this.forward, this.left, this.backward, this.right);
-        updateWasdInGui(this.forward, this.left, this.backward, this.right);
+    private void handleKeyReleased(KeyEvent event) {
+        if (this.tcpClient.isConnectionActive()) {
+            String keyReleased = event.getText();
+            if (keyReleased.equalsIgnoreCase("W")) this.forward = false;
+            if (keyReleased.equalsIgnoreCase("A")) this.left = false;
+            if (keyReleased.equalsIgnoreCase("S")) this.backward = false;
+            if (keyReleased.equalsIgnoreCase("D")) this.right = false;
+            System.out.println("Key released: " + keyReleased);
+            sendKeyCommand(this.forward, this.left, this.backward, this.right);
+            updateWasdInGui(this.forward, this.left, this.backward, this.right);
+        }
     }
 
-    private void updateWasdInGui(boolean w, boolean a, boolean s, boolean d){
-        if(w){
+    private void updateWasdInGui(boolean w, boolean a, boolean s, boolean d) {
+        if (w) {
             wButtonIndicator.setFill(Color.BLUE);
-            System.out.println("Blue");
-        } else{
+            //System.out.println("Blue");
+        } else {
             wButtonIndicator.setFill(Color.GREY);
-            System.out.println("Grey");
+            //System.out.println("Grey");
         }
-        if(a){
+        if (a) {
             aButtonIndicator.setFill(Color.BLUE);
-            System.out.println("Blue");
-        } else{
+            //System.out.println("Blue");
+        } else {
             aButtonIndicator.setFill(Color.GREY);
-            System.out.println("Grey");
+            //System.out.println("Grey");
         }
-        if(s){
+        if (s) {
             sButtonIndicator.setFill(Color.BLUE);
-            System.out.println("Blue");
-        } else{
+            //System.out.println("Blue");
+        } else {
             sButtonIndicator.setFill(Color.GREY);
-            System.out.println("Grey");
+            //System.out.println("Grey");
         }
-        if(d){
+        if (d) {
             dButtonIndicator.setFill(Color.BLUE);
-            System.out.println("Blue");
-        } else{
+            //System.out.println("Blue");
+        } else {
             dButtonIndicator.setFill(Color.GREY);
-            System.out.println("Grey");
+            //System.out.println("Grey");
         }
     }
 
     @FXML
-    private void speedValueControl(){
+    private void speedValueControl() {
         this.speed = (int) speedValue.getValue();
         System.out.println("Speed value: " + speed);
     }
 
     private void sendKeyCommand(boolean forward, boolean left, boolean backward, boolean right) {
         boolean change = false;
-        if(this.forward0 != forward) change = true;
-        if(this.left0 != left) change = true;
-        if(this.backward0 != backward) change = true;
-        if(this.right0 != right) change = true;
+        if (this.forward0 != forward) change = true;
+        if (this.left0 != left) change = true;
+        if (this.backward0 != backward) change = true;
+        if (this.right0 != right) change = true;
         this.forward0 = forward;
         this.left0 = left;
         this.backward0 = backward;
@@ -148,7 +193,7 @@ public class GUIController {
         if (this.tcpClient.isConnectionActive() && change) {
             System.out.println("Directions: " + forward + ", " + left + ", " + backward + ", " + right);
             System.out.println("Speed: " + this.speed);
-            Command cmd = new Command("directions", this.speed, wasd);
+            Command cmd = new Command("directions", this.speed, wasd, null);
             this.tcpClient.sendCommand(cmd);
         }
     }
@@ -156,7 +201,6 @@ public class GUIController {
 
     @FXML
     void startConnection(ActionEvent event) {
-        this.tcpClient = new TCPClient();
         if (this.tcpClient.isConnectionActive()) {
             this.tcpClient.disconnect();
         } else {
@@ -168,21 +212,21 @@ public class GUIController {
     @FXML
     void startUgv(ActionEvent event) {
         System.out.println("Sending: start");
-        Command cmd = new Command("start", 0, null);
+        Command cmd = new Command("start", 0, null, null);
         this.tcpClient.sendCommand(cmd);
     }
 
     @FXML
     void stopUgv(ActionEvent event) {
         System.out.println("Sending: stop");
-        Command cmd = new Command("stop", 0, null);
+        Command cmd = new Command("stop", 0, null, null);
         this.tcpClient.sendCommand(cmd);
     }
 
     @FXML
     void disconnect(ActionEvent event) {
         this.tcpClient.disconnect();
-        if(!this.tcpClient.isConnectionActive()){
+        if (!this.tcpClient.isConnectionActive()) {
             this.connectButton.setText("Connect");
             this.connectButton.setDisable(false);
             this.hostField.setDisable(false);
@@ -193,22 +237,18 @@ public class GUIController {
     }
 
 
-
-
-
-
     private void setupConnection(String host, String port) {
         this.connectButton.setText("Connecting...");
         this.connectButton.setDisable(true);
         this.hostField.setDisable(true);
         this.portField.setDisable(true);
         boolean connected = this.tcpClient.connect(host, Integer.parseInt(port));
-        if(connected){
+        if (connected) {
+            startPollingUGV();
             this.connectButton.setText("Connected!");
             this.connectButton.setTextFill(Color.GREEN);
         }
     }
-
 
 
 }

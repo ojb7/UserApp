@@ -6,10 +6,8 @@ import java.net.UnknownHostException;
 public class TCPClient implements Runnable{
     private Socket connection;
     private ObjectOutputStream toServer;
-    private BufferedReader fromServer;
+    private ObjectInputStream fromServer;
     private String lastError = null;
-    private String userId = null;
-
 
     /**
      *
@@ -27,7 +25,7 @@ public class TCPClient implements Runnable{
             // Opens output stream to the server
             OutputStream out = this.connection.getOutputStream();
             this.toServer = new ObjectOutputStream(out);
-            this.fromServer = new BufferedReader(new InputStreamReader(in));
+            this.fromServer = new ObjectInputStream(in);
             System.out.println("Connection established!");
             tellServerUser();
             System.out.println("Telling server that this is an user client");
@@ -84,21 +82,39 @@ public class TCPClient implements Runnable{
      * @param cmd Command to be sent to server
      */
     public synchronized void sendCommand(Command cmd){
+
         try {
+            System.out.println("Trying to send command: " + cmd.getCommand());
             this.toServer.writeObject(cmd);
-            System.out.println("Sending command: " + cmd.getCommand());
+            System.out.println("Succesfully sent command");
         } catch (IOException e) {
-            System.out.println("Could not write object.");
+            System.out.println("Could not write object...");
         }
     }
+
+    public synchronized Command receiveCommand() {
+        Command cmdFromServer = null;
+        try {
+            System.out.println("Trying to receive command from server");
+            cmdFromServer = (Command) this.fromServer.readObject();
+            System.out.println("Received command from server: " + cmdFromServer.getCommand());
+        } catch (IOException e) {
+            System.out.println("An I/O error has occurred while receiving commands...");
+        } catch (ClassNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        return cmdFromServer;
+    }
+
 
     /**
      * Tell server that this is an User Client
      */
     private void tellServerUser(){
-        Command cmd = new Command("User",0, null);
+        Command cmd = new Command("User",0, null, null);
         sendCommand(cmd);
     }
+
 
     @Override
     public void run() {
