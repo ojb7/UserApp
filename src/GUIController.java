@@ -1,15 +1,28 @@
-import javafx.beans.Observable;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.event.ActionEvent;
+
+
+import javafx.scene.image.Image;
+
+import javafx.scene.image.ImageView;
+
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 
-import java.util.ArrayList;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+
+import java.io.IOException;
+
 import java.util.List;
 
 public class GUIController {
@@ -20,9 +33,9 @@ public class GUIController {
     @FXML
     private Button connectButton;
     @FXML
-    private Button disconnectButton;
-    @FXML
     private Pane WASD;
+    @FXML
+    private Pane liveStreamPane;
     @FXML
     private Rectangle wButtonIndicator;
     @FXML
@@ -32,8 +45,6 @@ public class GUIController {
     @FXML
     private Rectangle dButtonIndicator;
     @FXML
-    private Button stopButton;
-    @FXML
     private Button startButton;
     @FXML
     private Slider speedValue;
@@ -42,10 +53,10 @@ public class GUIController {
     @FXML
     private Button selectUgvButton;
     @FXML
-    private Button refrUgvListButton;
+    private ImageView liveImage;
 
+    // TCP client
     private TCPClient tcpClient;
-    private Thread pollUGVsThread;
 
     // UGV movement directions
     private boolean forward = false;
@@ -67,10 +78,15 @@ public class GUIController {
     private static final String PORT = "42069";
 
     // UGV ID set from list of UGV's from server
-    int UgvId = -1;
+    private int ugvId = -1;
+
+    // Autonomous condition, started or stopped
+    private String autoCondition = "start";
 
 
-    private Thread userPollThread;
+    //private Thread userPollThread;
+    private Thread imagePollThread;
+    private Thread ugvListPollThread;
 
 
     ObservableList<String> obsListUgv;
@@ -82,31 +98,28 @@ public class GUIController {
         this.tcpClient = new TCPClient();
         this.hostField.setText(HOST_STASJ);
         this.portField.setText(PORT);
-        this.disconnectButton.setDisable(true);
         this.hostField.setDisable(false);
         this.portField.setDisable(false);
+
+        liveStreamPane.setStyle("-fx-background-color: #323437");
+
+
     }
 
     @FXML
     void selectUgvFromList(ActionEvent event) {
         if (this.tcpClient.isConnectionActive()) {
             String ugvIdSelected = listOfUGVs.getSelectionModel().getSelectedItem();
-            int ugv = Integer.parseInt(ugvIdSelected);
-            System.out.println("Sending: Selected UGV " + ugv);
-            Command cmd = new Command("Selected UGV", ugv, null, null);
+            this.ugvId = Integer.parseInt(ugvIdSelected);
+            System.out.println("Sending: Selected UGV " + this.ugvId);
+            Command cmd = new Command("UGVSelected", this.ugvId, null, null);
             this.tcpClient.sendCommand(cmd);
+            if (this.ugvId != -1) {
+                // Live stream from server
+                startPollingImage();
+            }
         }
     }
-
-
-    @FXML
-    void refreshUgvList(ActionEvent event) {
-        if (this.tcpClient.isConnectionActive()) {
-            System.out.println("Trying to refresh UGV list..");
-            startPollingUGV();
-        }
-    }
-
 
 //    private void startPollingUGV() {
 //        Command cmdToServer = new Command("UGVList", 0, null, null);
@@ -126,36 +139,98 @@ public class GUIController {
 //    }
 
 
-    private void startPollingUGV() {
-        if (this.userPollThread == null) {
-            this.userPollThread = new Thread(() -> {
+    private void startPollingUgvList() {
+        if (this.ugvListPollThread == null) {
+            this.ugvListPollThread = new Thread(() -> {
                 long threadId = Thread.currentThread().getId();
-                System.out.println("Started UGV polling in Thread " + threadId);
-                while (this.tcpClient.isConnectionActive()) {
-                    Command cmd = new Command("UGVlist", 0, null, null);
-                    this.tcpClient.sendCommand(cmd);
-                    Command cmdFromServer = this.tcpClient.receiveCommand();
-                    String cmdString = cmdFromServer.getCommand();
+                System.out.println("Started UGV list polling in Thread " + threadId);
 
+                String cmdString = null;
+                Command cmdFromServer = null;
+
+                while (this.tcpClient.isConnectionActive()) {
+
+                    Command cmd = new Command("updateUGVList", 0, null, null);
+                    this.tcpClient.sendCommand(cmd);
+
+                    Object objectFromServer = this.tcpClient.receiveObject();
+
+                    if (objectFromServer instanceof Command) {
+                        cmdFromServer = (Command) objectFromServer;
+                        cmdString = cmdFromServer.getCommand();
+                    }
                     if (cmdString != null) {
                         if (cmdString.equalsIgnoreCase("listUGV")) {
-                            List<String> UgvId = cmdFromServer.getUGVs();
-                            System.out.println("-----------------------List from server: " + UgvId);
-                            obsListUgv = FXCollections.observableArrayList(UgvId);
-                            listOfUGVs.setItems(obsListUgv);
-                            listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-                        }
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
+                            List<String> ugvIdList = cmdFromServer.getUGVs();
+                            System.out.println("<<< List from server: " + ugvIdList);
+
+
+                            if (ugvIdList.size() > 0) {
+                                obsListUgv = FXCollections.observableArrayList(ugvIdList);
+                            }
+
+                            //this.listOfUGVs.setItems(null);
+                            this.listOfUGVs.setItems(obsListUgv);
+                            this.listOfUGVs.refresh();
+                            this.listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
                         }
                     }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
-                System.out.println("User polling thread " + threadId + " exiting...");
-                this.userPollThread = null;
+                System.out.println("UGV list polling thread " + threadId + " exiting...");
+                this.ugvListPollThread = null;
             });
-            this.userPollThread.start();
+            this.ugvListPollThread.start();
+        }
+    }
+
+    private void startPollingImage() {
+        if (this.imagePollThread == null) {
+            this.imagePollThread = new Thread(() -> {
+                long threadId = Thread.currentThread().getId();
+                System.out.println("Started image polling in Thread " + threadId);
+
+                ImageObject imageFromServer;
+
+                while (this.tcpClient.isConnectionActive()) {
+                    Command cmd = new Command("updateServerImage", 0, null, null);
+                    this.tcpClient.sendCommand(cmd);
+
+                    ImageObject objectFromServer = (ImageObject) this.tcpClient.receiveObject();
+
+                    if (objectFromServer != null) {
+                        System.out.println("Object instance of ImageObject");
+                        ByteArrayInputStream bis = new ByteArrayInputStream(objectFromServer.getImageBytes());
+                        BufferedImage bImage = null;
+
+                        try {
+                            System.out.println("Reading buffered image...");
+                            bImage = ImageIO.read(bis);
+                        } catch (IOException e) {
+                            System.err.println("Error reading buffered image: " + e.getMessage());
+                        }
+
+                        Image img = SwingFXUtils.toFXImage(bImage, null);
+
+                        liveImage.setImage(img);
+                        // Update ImageView on GUI
+
+                        imageFromServer = null;
+                    }
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                System.out.println("Image polling thread " + threadId + " exiting...");
+                this.imagePollThread = null;
+            });
+            this.imagePollThread.start();
         }
     }
 
@@ -222,7 +297,6 @@ public class GUIController {
     @FXML
     private void speedValueControl() {
         this.speed = (int) speedValue.getValue();
-        System.out.println("Speed value: " + speed);
     }
 
     private void sendKeyCommand(boolean forward, boolean left, boolean backward, boolean right) {
@@ -243,64 +317,93 @@ public class GUIController {
         wasd[3] = right;
 
         if (this.tcpClient.isConnectionActive() && change) {
-            System.out.println("Directions: " + forward + ", " + left + ", " + backward + ", " + right);
-            System.out.println("Speed: " + this.speed);
-            Command cmd = new Command("directions", this.speed, wasd, null);
+            System.out.println(">>> Directions: " + forward + ", " + left + ", " + backward + ", " + right);
+            System.out.println(">>> Speed: " + this.speed);
+            Command cmd = new Command("manual", this.speed, wasd, null);
             this.tcpClient.sendCommand(cmd);
         }
     }
 
 
     @FXML
-    void startConnection(ActionEvent event) {
+    void startStopUgv(ActionEvent event) {
         if (this.tcpClient.isConnectionActive()) {
-            this.tcpClient.disconnect();
-        } else {
-            setupConnection(this.hostField.getText(), this.portField.getText());
-            this.disconnectButton.setDisable(false);
+            // Create instance of Command to be sent to server
+            Command cmd = null;
+            if (this.autoCondition.equals("start")) {
+                // Update start/stop option
+                this.autoCondition = "stop";
+                // Create command to send to server
+                System.out.println(">>> UGV: start");
+                cmd = new Command("start", 0, null, null);
+                // Update text on button
+                this.startButton.setText("Stop");
+            } else if (this.autoCondition.equals("stop")) {
+                // Update start/stop option
+                this.autoCondition = "start";
+                // Create command to send to server
+                System.out.println(">>> UGV: stop");
+                cmd = new Command("stop", 0, null, null);
+                // Update text on button
+                this.startButton.setText("Start");
+            } else {
+                System.err.println("Could not start/stop UGV...");
+            }
+            // Send command to server
+            this.tcpClient.sendCommand(cmd);
         }
     }
 
-    @FXML
-    void startUgv(ActionEvent event) {
-        System.out.println("Sending: start");
-        Command cmd = new Command("start", 0, null, null);
-        this.tcpClient.sendCommand(cmd);
-    }
+
+//    @FXML
+//    void disconnect(ActionEvent event) {
+//        this.tcpClient.disconnect();
+//        if (!this.tcpClient.isConnectionActive()) {
+//            this.connectButton.setText("Connect");
+//            this.connectButton.setDisable(false);
+//            this.hostField.setDisable(false);
+//            this.portField.setDisable(false);
+//            this.connectButton.setTextFill(Color.BLACK);
+//            this.disconnectButton.setDisable(true);
+//        }
+//    }
 
     @FXML
-    void stopUgv(ActionEvent event) {
-        System.out.println("Sending: stop");
-        Command cmd = new Command("stop", 0, null, null);
-        this.tcpClient.sendCommand(cmd);
-    }
-
-    @FXML
-    void disconnect(ActionEvent event) {
-        this.tcpClient.disconnect();
-        if (!this.tcpClient.isConnectionActive()) {
+    void startConnection(ActionEvent event) {
+        boolean connection = this.tcpClient.isConnectionActive();
+        if (connection) {
+            // When pressing disconnect
+            this.tcpClient.disconnect();
             this.connectButton.setText("Connect");
-            this.connectButton.setDisable(false);
-            this.hostField.setDisable(false);
-            this.portField.setDisable(false);
-            this.connectButton.setTextFill(Color.BLACK);
-            this.disconnectButton.setDisable(true);
+        } else {
+            // When pressing connect
+            setupConnection(this.hostField.getText(), this.portField.getText());
+            this.connectButton.setText("Disconnect");
         }
     }
 
 
     private void setupConnection(String host, String port) {
         this.connectButton.setText("Connecting...");
-        this.connectButton.setDisable(true);
-        this.hostField.setDisable(true);
-        this.portField.setDisable(true);
         boolean connected = this.tcpClient.connect(host, Integer.parseInt(port));
         if (connected) {
-            userClientToServer();
             System.out.println("Telling server that this is an user client...");
-            startPollingUGV();
-            this.connectButton.setText("Connected!");
-            this.connectButton.setTextFill(Color.GREEN);
+            userClientToServer();
+            this.hostField.setDisable(true);
+            this.portField.setDisable(true);
+
+            // Update UGV list from server
+            startPollingUgvList();
+
+
+            // Live stream from server
+            /////startPollingImage();
+
+
+        } else {
+            this.connectButton.setText("Connecting...");
+            this.hostField.setDisable(false);
+            this.portField.setDisable(false);
         }
     }
 
@@ -308,6 +411,4 @@ public class GUIController {
         Command cmd = new Command("User", 0, null, null);
         this.tcpClient.sendCommand(cmd);
     }
-
-
 }

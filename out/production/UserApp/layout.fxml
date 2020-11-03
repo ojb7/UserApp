@@ -37,8 +37,7 @@
                                  </image>
                               </ImageView>
                               <TextField fx:id="hostField" layoutX="14.0" layoutY="149.0" prefHeight="25.0" prefWidth="108.0" promptText="Host" text="127.0.0.1" />
-                              <Button fx:id="connectButton" layoutX="133.0" layoutY="149.0" mnemonicParsing="false" onAction="#startConnection" prefHeight="25.0" prefWidth="101.0" text="Connect" />
-                              <Button fx:id="disconnectButton" layoutX="133.0" layoutY="197.0" mnemonicParsing="false" onAction="#disconnect" prefHeight="25.0" prefWidth="101.0" text="Disconnect" />
+                              <Button fx:id="connectButton" layoutX="15.0" layoutY="237.0" mnemonicParsing="false" onAction="#startConnection" prefHeight="25.0" prefWidth="107.0" text="Connect" />
                               <Label layoutX="14.0" layoutY="132.0" prefHeight="17.0" prefWidth="76.0" text="Host" />
                               <Label layoutX="14.0" layoutY="181.0" prefHeight="17.0" prefWidth="76.0" text="Port" />
                            </children>
@@ -57,7 +56,6 @@
                                  <children>
                                     <ListView fx:id="listOfUGVs" layoutX="19.6" layoutY="19.6" prefHeight="187.0" prefWidth="130.0" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
                                     <Button fx:id="selectUgvButton" layoutX="157.0" layoutY="20.0" mnemonicParsing="false" onAction="#selectUgvFromList" prefHeight="25.0" prefWidth="68.0" text="Select" />
-                                    <Button fx:id="refrUgvListButton" layoutX="157.0" layoutY="52.0" mnemonicParsing="false" onAction="#refreshUgvList" prefHeight="25.0" prefWidth="70.0" text="Refresh" />
                                  </children>
                               </AnchorPane>
                           </content>
@@ -74,17 +72,16 @@
                           <items>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="270.0" prefWidth="958.0">
                                  <children>
-                                    <ImageView fitHeight="240.0" fitWidth="686.0" layoutX="110.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="13.004592895507812" AnchorPane.leftAnchor="110.0" AnchorPane.rightAnchor="162.0" AnchorPane.topAnchor="14.0">
-                                       <image>
-                                          <Image url="@Images/LiveStreamLogo.png" />
-                                       </image>
-                                    </ImageView>
+                                    <Pane fx:id="liveStreamPane" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                       <children>
+                                          <ImageView fx:id="liveImage" fitHeight="300.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true" />
+                                       </children>
+                                    </Pane>
                                  </children>
                               </AnchorPane>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="205.0" prefWidth="958.0">
                                  <children>
-                                    <Button fx:id="stopButton" layoutX="325.0" layoutY="71.0" mnemonicParsing="false" onAction="#stopUgv" text="Stop" />
-                                    <Button fx:id="startButton" layoutX="325.0" layoutY="33.0" mnemonicParsing="false" onAction="#startUgv" text="Start" />
+                                    <Button fx:id="startButton" layoutX="203.0" layoutY="16.0" mnemonicParsing="false" onAction="#startStopUgv" prefHeight="25.0" prefWidth="105.0" text="Start" />
                                     <Pane layoutX="238.0" layoutY="196.0" prefHeight="70.0" prefWidth="226.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="238.0">
                                        <children>
                                           <Slider fx:id="speedValue" layoutY="21.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" />
@@ -95,7 +92,7 @@
                                           </Label>
                                        </children>
                                     </Pane>
-                                    <ToggleButton layoutX="222.0" layoutY="52.0" mnemonicParsing="false" text="Manual control" />
+                                    <ToggleButton layoutX="203.0" layoutY="52.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="105.0" text="Manual control" />
                                     <TitledPane animated="false" collapsible="false" layoutX="14.0" layoutY="16.0" mouseTransparent="true" text="Manual Controls" wrapText="true">
                                       <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="130.0" prefWidth="175.0">

@@ -105,4 +105,26 @@ public class TCPClient {
         }
         return cmdFromServer;
     }
+
+    public synchronized Object receiveObject() {
+        System.out.println("Trying to receive command from server...");
+        Object objectFromServer = null;
+        if (isConnectionActive()) {
+            try {
+                objectFromServer = this.fromServer.readObject();
+                System.out.println("Received object from server!");
+            } catch (IOException e) {
+                System.err.println("An I/O error has occurred while receiving server commands, socket could be closed...");
+                disconnect();
+            } catch (ClassNotFoundException e) {
+                System.err.println("An Class Not Found Exception occurred: " + e.getMessage());
+                disconnect();
+            }
+        }
+        return objectFromServer;
+    }
+
+
+
+
 }

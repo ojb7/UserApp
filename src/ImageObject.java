@@ -1,6 +1,6 @@
 import java.io.Serializable;
 
-public class Image implements Serializable {
+public class ImageObject implements Serializable {
     private static final long serialVersionUID = 2780459376294108401L;
     private String name = null;
     private long size = 0;
@@ -8,7 +8,7 @@ public class Image implements Serializable {
     private String date = null;
     private String filetype = null;
 
-    public Image(String name, long size, byte[] imageBytes, String date, String filetype)
+    public ImageObject(String name, long size, byte[] imageBytes, String date, String filetype)
     {
         this.name = name;
         this.size = size;
