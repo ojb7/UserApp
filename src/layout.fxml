@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Slider?>
@@ -9,7 +10,6 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -74,17 +74,16 @@
                                  <children>
                                     <Pane fx:id="liveStreamPane" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
-                                          <ImageView fx:id="liveImage" fitHeight="300.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true" />
+                                          <ImageView fx:id="liveImage" fitHeight="1080.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true" />
                                        </children>
                                     </Pane>
                                  </children>
                               </AnchorPane>
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="205.0" prefWidth="958.0">
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="257.0" prefWidth="958.0">
                                  <children>
-                                    <Button fx:id="startButton" layoutX="203.0" layoutY="16.0" mnemonicParsing="false" onAction="#startStopUgv" prefHeight="25.0" prefWidth="105.0" text="Start" />
-                                    <Pane layoutX="238.0" layoutY="196.0" prefHeight="70.0" prefWidth="226.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="238.0">
+                                    <Pane layoutX="14.0" layoutY="188.0" prefHeight="70.0" prefWidth="226.0" AnchorPane.bottomAnchor="-7.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="188.0">
                                        <children>
-                                          <Slider fx:id="speedValue" layoutY="21.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" />
+                                          <Slider fx:id="speedValue" layoutY="21.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" value="50.0" />
                                           <Label alignment="CENTER" layoutX="3.0" onMouseReleased="#speedValueControl" prefHeight="21.0" prefWidth="218.0" text="Speed" textAlignment="CENTER">
                                              <font>
                                                 <Font size="15.0" />
@@ -92,8 +91,7 @@
                                           </Label>
                                        </children>
                                     </Pane>
-                                    <ToggleButton layoutX="203.0" layoutY="52.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="105.0" text="Manual control" />
-                                    <TitledPane animated="false" collapsible="false" layoutX="14.0" layoutY="16.0" mouseTransparent="true" text="Manual Controls" wrapText="true">
+                                    <TitledPane animated="false" collapsible="false" layoutX="32.0" layoutY="25.0" mouseTransparent="true" text="Manual Controls" wrapText="true" AnchorPane.topAnchor="26.0">
                                       <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="130.0" prefWidth="175.0">
                                              <children>
@@ -165,6 +163,18 @@
                                           </AnchorPane>
                                       </content>
                                     </TitledPane>
+                                    <TitledPane animated="false" collapsible="false" layoutX="783.0" layoutY="14.0" mouseTransparent="true" prefHeight="92.0" prefWidth="161.0" text="Status" wrapText="true" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="26.0">
+                                       <content>
+                                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="98.0" prefWidth="215.0">
+                                             <children>
+                                                <CheckBox fx:id="connectionCheckBox" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" text="Connection to server" />
+                                                <CheckBox fx:id="ugvStatusCheckBox" layoutX="14.0" layoutY="39.0" mnemonicParsing="false" text="Connected to UGV" />
+                                             </children>
+                                          </AnchorPane>
+                                       </content>
+                                    </TitledPane>
+                                    <Button fx:id="startButton" layoutX="431.0" layoutY="53.0" mnemonicParsing="false" onAction="#startStopUgv" prefHeight="25.0" prefWidth="105.0" text="Auto Mode" />
+                                    <Button fx:id="manualModeButton" layoutX="451.0" layoutY="99.0" mnemonicParsing="false" onAction="#startStopManualUgv" prefHeight="25.0" prefWidth="105.0" text="Manual Mode" />
                                  </children>
                               </AnchorPane>
                           </items>
