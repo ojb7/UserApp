@@ -82,25 +82,19 @@ public class GUIController {
     // Speed value of UGV
     private int speed = 0;
 
-    // Connection information
+    // Server connection information
     private static final String HOST = "10.22.192.92";
     private static final String HOST_STASJ = "83.243.240.94";
     private static final String PORT = "42069";
-
-    // List og UGV ID's from server
-    List<String> ugvIdList;
-    // UGV ID set from list of UGV's from server
-    private int ugvId = -1;
 
     // Autonomous condition, started or stopped
     private String autoCondition = "Off";
     private String manualCondition = "Off";
 
-    // Connection condition, connected/notConnected
+    // Connection condition, "connected"/"notConnected"
     String connectionCondition = "notConnected";
 
-
-    //private Thread userPollThread;
+    // Threads
     private Thread imagePollThread;
     private Thread ugvListPollThread;
     private Thread connectionThread;
@@ -109,7 +103,13 @@ public class GUIController {
     // Total images UGV should take
     private int autoUgvImages = 15;
 
+    // ObservableList og List of UGV from server
     ObservableList<String> obsListUgv;
+    // List og UGV ID's from server
+    List<String> ugvIdList;
+    // UGV ID set from list of UGV's from server
+    private int ugvId = -1;
+
 
     @FXML
     public void initialize() {
@@ -133,104 +133,6 @@ public class GUIController {
             System.out.println(">>> Sending: Selected UGV " + this.ugvId);
             this.tcpClient.setUgvIdToServer(this.ugvId);
             checkUgvIdStatus();
-        }
-    }
-
-
-    private void startPollingUgvList() {
-        if (this.ugvListPollThread == null) {
-            // Create a new thread for polling UGV list
-            this.ugvListPollThread = new Thread(() -> {
-                long threadId = Thread.currentThread().getId();
-                System.out.println("Started UGV list polling in Thread " + threadId);
-
-                String cmdString = null;
-                Command cmdFromServer = null;
-
-                while (this.tcpClient.isConnectionActive()) {
-                    // Ask for UGV list from server
-                    this.tcpClient.askUgvListFromServer();
-
-                    // Try to receive object from server
-                    Object objectFromServer = this.tcpClient.receiveObject();
-
-                    if (objectFromServer instanceof Command) {
-                        cmdFromServer = (Command) objectFromServer;
-                        cmdString = cmdFromServer.getCommand();
-                    }
-                    if (cmdString != null) {
-                        if (cmdString.equalsIgnoreCase("listUGV")) {
-                            ugvIdList = cmdFromServer.getUGVs();
-                            //System.out.println("<<< List from server: " + ugvIdList);
-
-                            obsListUgv = FXCollections.observableArrayList(ugvIdList);
-
-                            Platform.runLater(() -> {
-                                this.listOfUGVs.setItems(obsListUgv);
-                            });
-
-                            this.listOfUGVs.refresh();
-                            this.listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-                        }
-                    }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                System.out.println("UGV list polling thread " + threadId + " exiting...");
-                this.ugvListPollThread = null;
-            });
-            this.ugvListPollThread.start();
-        }
-    }
-
-    private void startPollingUGVImage() {
-        if (this.imagePollThread == null) {
-            this.imagePollThread = new Thread(() -> {
-                long threadId = Thread.currentThread().getId();
-                System.out.println("Started image polling in Thread " + threadId);
-
-                ImageObject imageFromServer;
-
-                while (this.tcpClient.isConnectionActive() && (ugvId != -1) && (this.autoCondition.equalsIgnoreCase("On"))) {
-
-                    ////////////////////////////////////////////////////// Images from server------------------------
-                    this.tcpClient.askUgvImageFromServer();
-
-                    ImageObject objectFromServer = (ImageObject) this.tcpClient.receiveObject();
-
-                    if (objectFromServer != null) {
-                        System.out.println("Object instance of ImageObject");
-                        ByteArrayInputStream bis = new ByteArrayInputStream(objectFromServer.getImageBytes());
-                        BufferedImage bImage = null;
-
-                        try {
-                            System.out.println("Reading buffered image...");
-                            bImage = ImageIO.read(bis);
-                        } catch (IOException e) {
-                            System.err.println("Error reading buffered image: " + e.getMessage());
-                        }
-
-                        Image img = SwingFXUtils.toFXImage(bImage, null);
-
-                        this.liveImage.setImage(img);
-                        // Update ImageView on GUI
-
-                        imageFromServer = null;
-                    }
-                    try {
-                        // Set time to update image
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                System.out.println("Image polling thread " + threadId + " exiting...");
-                this.imagePollThread = null;
-            });
-            this.imagePollThread.start();
         }
     }
 
@@ -525,6 +427,103 @@ public class GUIController {
         } else {
             dButtonIndicator.setFill(Color.GREY);
             //System.out.println("Grey");
+        }
+    }
+
+    private void startPollingUgvList() {
+        if (this.ugvListPollThread == null) {
+            // Create a new thread for polling UGV list
+            this.ugvListPollThread = new Thread(() -> {
+                long threadId = Thread.currentThread().getId();
+                System.out.println("Started UGV list polling in Thread " + threadId);
+
+                String cmdString = null;
+                Command cmdFromServer = null;
+
+                while (this.tcpClient.isConnectionActive()) {
+                    // Ask for UGV list from server
+                    this.tcpClient.askUgvListFromServer();
+
+                    // Try to receive object from server
+                    Object objectFromServer = this.tcpClient.receiveObject();
+
+                    if (objectFromServer instanceof Command) {
+                        cmdFromServer = (Command) objectFromServer;
+                        cmdString = cmdFromServer.getCommand();
+                    }
+                    if (cmdString != null) {
+                        if (cmdString.equalsIgnoreCase("listUGV")) {
+                            ugvIdList = cmdFromServer.getUGVs();
+                            //System.out.println("<<< List from server: " + ugvIdList);
+
+                            obsListUgv = FXCollections.observableArrayList(ugvIdList);
+
+                            Platform.runLater(() -> {
+                                this.listOfUGVs.setItems(obsListUgv);
+                            });
+
+                            this.listOfUGVs.refresh();
+                            this.listOfUGVs.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                        }
+                    }
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                System.out.println("UGV list polling thread " + threadId + " exiting...");
+                this.ugvListPollThread = null;
+            });
+            this.ugvListPollThread.start();
+        }
+    }
+
+    private void startPollingUGVImage() {
+        if (this.imagePollThread == null) {
+            this.imagePollThread = new Thread(() -> {
+                long threadId = Thread.currentThread().getId();
+                System.out.println("Started image polling in Thread " + threadId);
+
+                ImageObject imageFromServer;
+
+                while (this.tcpClient.isConnectionActive() && (ugvId != -1) && (this.autoCondition.equalsIgnoreCase("On"))) {
+
+                    ////////////////////////////////////////////////////// Images from server------------------------
+                    this.tcpClient.askUgvImageFromServer();
+
+                    ImageObject objectFromServer = (ImageObject) this.tcpClient.receiveObject();
+
+                    if (objectFromServer != null) {
+                        System.out.println("Object instance of ImageObject");
+                        ByteArrayInputStream bis = new ByteArrayInputStream(objectFromServer.getImageBytes());
+                        BufferedImage bImage = null;
+
+                        try {
+                            System.out.println("Reading buffered image...");
+                            bImage = ImageIO.read(bis);
+                        } catch (IOException e) {
+                            System.err.println("Error reading buffered image: " + e.getMessage());
+                        }
+
+                        Image img = SwingFXUtils.toFXImage(bImage, null);
+
+                        this.liveImage.setImage(img);
+                        // Update ImageView on GUI
+
+                        imageFromServer = null;
+                    }
+                    try {
+                        // Set time to update image
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                System.out.println("Image polling thread " + threadId + " exiting...");
+                this.imagePollThread = null;
+            });
+            this.imagePollThread.start();
         }
     }
 
