@@ -26,7 +26,9 @@ public class App extends javafx.application.Application {
         primaryStage.setTitle("UGV Application");
         Image ntnuIcon = new Image("Images/ntnu.png");
         primaryStage.getIcons().add(ntnuIcon);
-        primaryStage.setScene(new Scene(root, 900, 600));
+        Scene scene = new Scene(root, 900, 600);
+        scene.getStylesheets().add("Styles/style.css");
+        primaryStage.setScene(scene);
         primaryStage.show();
     }
 

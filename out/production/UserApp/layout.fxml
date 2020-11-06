@@ -2,8 +2,10 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -13,6 +15,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.paint.LinearGradient?>
 <?import javafx.scene.paint.Stop?>
@@ -20,11 +23,11 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="1080.0" maxWidth="1920.0" minHeight="540.0" minWidth="960.0" onKeyPressed="#handleKeyPressed" onKeyReleased="#handleKeyReleased" prefHeight="540.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUIController">
+<AnchorPane fx:id="appWindow" maxHeight="1080.0" maxWidth="1920.0" minHeight="540.0" minWidth="960.0" onKeyPressed="#handleKeyPressed" onKeyReleased="#handleKeyReleased" prefHeight="540.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUIController">
    <children>
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
-          <Tab text="Connection">
+          <Tab fx:id="tab1" text="Connection">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -46,7 +49,7 @@
                   </AnchorPane>
             </content>
           </Tab>
-            <Tab text="UGV List">
+            <Tab fx:id="tab2" text="UGV List">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -64,40 +67,30 @@
                   </AnchorPane>
               </content>
             </Tab>
-          <Tab text="UGV Controls">
+          <Tab fx:id="tab3" text="UGV Controls">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <SplitPane dividerPositions="0.6011787819253438" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <items>
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="270.0" prefWidth="958.0">
+                            <AnchorPane fx:id="liveStreamPane" minHeight="0.0" minWidth="0.0">
                                  <children>
-                                    <Pane fx:id="liveStreamPane" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <HBox alignment="TOP_CENTER" prefHeight="100.0" prefWidth="958.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
-                                          <ImageView fx:id="liveImage" fitHeight="1080.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="true" />
+                                          <ImageView fx:id="liveImage" pickOnBounds="true" preserveRatio="true" />
                                        </children>
-                                    </Pane>
+                                    </HBox>
                                  </children>
                               </AnchorPane>
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="257.0" prefWidth="958.0">
+                            <AnchorPane maxHeight="500.0" minHeight="275.0" prefHeight="275.0">
                                  <children>
-                                    <Pane layoutX="14.0" layoutY="188.0" prefHeight="70.0" prefWidth="226.0" AnchorPane.bottomAnchor="-7.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="188.0">
-                                       <children>
-                                          <Slider fx:id="speedValue" layoutY="21.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" value="50.0" />
-                                          <Label alignment="CENTER" layoutX="3.0" onMouseReleased="#speedValueControl" prefHeight="21.0" prefWidth="218.0" text="Speed" textAlignment="CENTER">
-                                             <font>
-                                                <Font size="15.0" />
-                                             </font>
-                                          </Label>
-                                       </children>
-                                    </Pane>
-                                    <TitledPane animated="false" collapsible="false" layoutX="32.0" layoutY="25.0" mouseTransparent="true" text="Manual Controls" wrapText="true" AnchorPane.topAnchor="26.0">
+                                    <TitledPane animated="false" collapsible="false" layoutX="14.0" layoutY="15.0" mouseTransparent="true" prefHeight="205.0" prefWidth="255.0" text="Manual Controls" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="15.0">
                                       <content>
-                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="130.0" prefWidth="175.0">
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="234.0" prefWidth="264.0">
                                              <children>
-                                                <Pane fx:id="WASD" layoutX="7.0" layoutY="14.0" prefHeight="120.0" prefWidth="165.0">
+                                                <Pane fx:id="WASD" layoutX="67.0" layoutY="14.0" prefHeight="77.0" prefWidth="111.0">
                                                    <children>
-                                                      <Rectangle fx:id="wButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="70.0" layoutX="45.0" layoutY="-10.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="70.0">
+                                                      <Rectangle fx:id="wButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="40.0" layoutX="35.0" layoutY="1.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="40.0">
                                                          <fill>
                                                             <LinearGradient endX="1.0" endY="1.0">
                                                                <stops>
@@ -107,12 +100,12 @@
                                                             </LinearGradient>
                                                          </fill>
                                                       </Rectangle>
-                                                      <Text layoutX="62.0" layoutY="39.0" strokeType="OUTSIDE" strokeWidth="0.0" text="W">
+                                                      <Text layoutX="46.0" layoutY="28.0" strokeType="OUTSIDE" strokeWidth="0.0" text="W" wrappingWidth="18.342453002929688">
                                                          <font>
-                                                            <Font name="System Bold" size="36.0" />
+                                                            <Font name="System Bold" size="18.0" />
                                                          </font>
                                                       </Text>
-                                                      <Rectangle fx:id="aButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="70.0" layoutX="-10.0" layoutY="45.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="70.0">
+                                                      <Rectangle fx:id="aButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="40.0" layoutX="1.0" layoutY="36.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="40.0">
                                                          <fill>
                                                             <LinearGradient endX="1.0" endY="1.0">
                                                                <stops>
@@ -122,12 +115,12 @@
                                                             </LinearGradient>
                                                          </fill>
                                                       </Rectangle>
-                                                      <Text layoutX="12.0" layoutY="94.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="A">
+                                                      <Text layoutX="15.0" layoutY="62.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="A">
                                                          <font>
-                                                            <Font name="System Bold" size="36.0" />
+                                                            <Font name="System Bold" size="18.0" />
                                                          </font>
                                                       </Text>
-                                                      <Rectangle fx:id="sButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="70.0" layoutX="45.0" layoutY="45.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="70.0">
+                                                      <Rectangle fx:id="sButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="40.0" layoutX="35.0" layoutY="36.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="40.0">
                                                          <fill>
                                                             <LinearGradient endX="1.0" endY="1.0">
                                                                <stops>
@@ -137,12 +130,12 @@
                                                             </LinearGradient>
                                                          </fill>
                                                       </Rectangle>
-                                                      <Text layoutX="70.0" layoutY="91.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="S">
+                                                      <Text layoutX="50.0" layoutY="62.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="S">
                                                          <font>
-                                                            <Font name="System Bold" size="36.0" />
+                                                            <Font name="System Bold" size="18.0" />
                                                          </font>
                                                       </Text>
-                                                      <Rectangle fx:id="dButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="70.0" layoutX="101.0" layoutY="45.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="70.0">
+                                                      <Rectangle fx:id="dButtonIndicator" arcHeight="5.0" arcWidth="5.0" height="40.0" layoutX="69.0" layoutY="36.0" scaleX="0.7" scaleY="0.7" stroke="BLACK" strokeType="INSIDE" width="40.0">
                                                          <fill>
                                                             <LinearGradient endX="1.0" endY="1.0">
                                                                <stops>
@@ -152,18 +145,25 @@
                                                             </LinearGradient>
                                                          </fill>
                                                       </Rectangle>
-                                                      <Text layoutX="123.0" layoutY="92.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="D">
+                                                      <Text layoutX="83.0" layoutY="62.0" stroke="RED" strokeType="OUTSIDE" strokeWidth="0.0" text="D">
                                                          <font>
-                                                            <Font name="System Bold" size="36.0" />
+                                                            <Font name="System Bold" size="18.0" />
                                                          </font>
                                                       </Text>
                                                    </children>
                                                 </Pane>
+                                                <Pane layoutY="105.0" prefHeight="101.0" prefWidth="226.0" AnchorPane.bottomAnchor="104.79999999999995" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="105.0" />
+                                                <Label alignment="CENTER" layoutX="20.0" layoutY="148.0" onMouseReleased="#speedValueControl" prefHeight="21.0" prefWidth="218.0" text="Speed" textAlignment="CENTER">
+                                                   <font>
+                                                      <Font size="15.0" />
+                                                   </font>
+                                                </Label>
+                                                <Slider fx:id="speedValue" layoutX="20.0" layoutY="120.0" onMouseReleased="#speedValueControl" prefHeight="14.0" prefWidth="218.0" showTickLabels="true" showTickMarks="true" value="50.0" />
                                              </children>
                                           </AnchorPane>
                                       </content>
                                     </TitledPane>
-                                    <TitledPane animated="false" collapsible="false" layoutX="783.0" layoutY="14.0" mouseTransparent="true" prefHeight="92.0" prefWidth="161.0" text="Status" wrapText="true" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="26.0">
+                                    <TitledPane fx:id="statusPane" animated="false" collapsible="false" layoutX="783.0" layoutY="14.0" mouseTransparent="true" prefHeight="92.0" prefWidth="161.0" text="Status" wrapText="true" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="15.0">
                                        <content>
                                           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="98.0" prefWidth="215.0">
                                              <children>
@@ -173,8 +173,32 @@
                                           </AnchorPane>
                                        </content>
                                     </TitledPane>
-                                    <Button fx:id="startButton" layoutX="431.0" layoutY="53.0" mnemonicParsing="false" onAction="#startStopUgv" prefHeight="25.0" prefWidth="105.0" text="Auto Mode" />
-                                    <Button fx:id="manualModeButton" layoutX="451.0" layoutY="99.0" mnemonicParsing="false" onAction="#startStopManualUgv" prefHeight="25.0" prefWidth="105.0" text="Manual Mode" />
+                                    <TitledPane animated="false" collapsible="false" layoutX="278.0" layoutY="15.0" prefHeight="110.0" prefWidth="150.0" text="Toggle On/Off" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="15.0">
+                                      <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="90.0" prefWidth="160.0">
+                                             <children>
+                                                <Button fx:id="startButton" layoutX="22.0" layoutY="8.0" mnemonicParsing="false" onAction="#startStopUgv" prefHeight="25.0" prefWidth="105.0" text="Auto Mode" />
+                                                <Button fx:id="manualModeButton" layoutX="22.0" layoutY="45.0" mnemonicParsing="false" onAction="#startStopManualUgv" prefHeight="25.0" prefWidth="105.0" text="Manual Mode" />
+                                             </children>
+                                          </AnchorPane>
+                                      </content>
+                                    </TitledPane>
+                                    <ProgressBar fx:id="meshroomProgressBar" layoutX="14.0" layoutY="267.0" prefHeight="18.0" prefWidth="935.0" progress="0.0" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+                                    <TitledPane animated="false" collapsible="false" layoutX="454.0" layoutY="14.0" prefHeight="110.0" prefWidth="150.0" text="Chose no. of Images" AnchorPane.leftAnchor="440.0" AnchorPane.topAnchor="15.0">
+                                      <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                             <children>
+                                                <ChoiceBox fx:id="imagesNumberList" layoutX="17.0" layoutY="8.0" prefHeight="25.0" prefWidth="114.0" />
+                                                <Button fx:id="setNumberOfImages" layoutX="45.0" layoutY="45.0" mnemonicParsing="false" onAction="#setNumberOfUgvImages" prefHeight="25.0" prefWidth="58.0" text="Set" />
+                                             </children>
+                                          </AnchorPane>
+                                      </content>
+                                    </TitledPane>
+                                    <Label fx:id="progressLabel" alignment="CENTER" layoutX="331.0" layoutY="220.0" onMouseReleased="#speedValueControl" prefHeight="21.0" prefWidth="613.0" textAlignment="CENTER" AnchorPane.bottomAnchor="32.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0">
+                                       <font>
+                                          <Font size="15.0" />
+                                       </font>
+                                    </Label>
                                  </children>
                               </AnchorPane>
                           </items>

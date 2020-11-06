@@ -8,6 +8,12 @@ public class TCPClient {
     private ObjectOutputStream toServer;
     private ObjectInputStream fromServer;
 
+    // Ping variables
+    private long timeSent;
+    private long timeReceived;
+    private long lastPing = 0;
+
+
     /**
      * @param host The IP address of the host
      * @param port The port at the host
@@ -69,16 +75,18 @@ public class TCPClient {
     }
 
     /**
-     * Sends a command to the UGV server
+     * Tries to send a command to the UGV server
      *
      * @param cmd Command to be sent to server
      */
-    public synchronized void sendCommand(Command cmd) {
-        System.out.println(">>> Trying to send command: " + cmd.getCommand());
+    private synchronized void sendCommand(Command cmd) {
         if (isConnectionActive()) {
             try {
                 this.toServer.writeObject(cmd);
-                System.out.println("Succesfully sent command!");
+                this.toServer.flush();
+                System.out.println(">>>S Succesfully sent command: " + cmd.getCommand() + " to server!");
+                this.timeSent = System.currentTimeMillis();
+
             } catch (IOException e) {
                 System.err.println("Could not write object...");
             }
@@ -88,14 +96,18 @@ public class TCPClient {
     }
 
 
-
-    public synchronized Object receiveObject() {
-        System.out.println("Trying to receive object from server...");
+    /**
+     * Tries to receive an Object from server
+     *
+     * @return Returns Object received from server
+     */
+    private synchronized Object receiveObject() {
         Object objectFromServer = null;
         if (isConnectionActive()) {
             try {
                 objectFromServer = this.fromServer.readObject();
-                System.out.println("Received object from server!");
+                System.out.println("<<<R Succesfully received object from server!");
+                this.timeReceived = System.currentTimeMillis();
             } catch (IOException e) {
                 System.err.println("An I/O error has occurred while receiving server commands, socket could be closed...");
                 disconnect();
@@ -109,62 +121,123 @@ public class TCPClient {
         return objectFromServer;
     }
 
+    /**
+     *
+     * @return
+     */
+    public long getPing(){
+        long ping = this.timeReceived - this.timeSent;
+
+        if(ping > 0) {
+            this.lastPing = ping;
+        }
+        return this.lastPing;
+    }
 
 
     //---------------------- Server Protocol Start ----------------------//
 
-    public void askUgvListFromServer(){
+    public void askUgvListFromServer() {
         Command cmd = new Command("updateUGVList", 0, null, null);
         sendCommand(cmd);
     }
 
-    public void askServerImageFromServer(){
+    public void askServerImageFromServer() {
         Command cmd = new Command("updateServerImage", 0, null, null);
         sendCommand(cmd);
     }
 
-    public void askUgvImageFromServer(){
+    public void askUgvImageFromServer() {
         Command cmd = new Command("updateUGVImage", 0, null, null);
         sendCommand(cmd);
     }
 
-    public void setUserStateToServer(){
+    public void setUserStateToServer() {
         Command cmd = new Command("User", 0, null, null);
         sendCommand(cmd);
     }
 
-    public void setAutoOnToServer(int numberOfImages){
+    public void setAutoOnToServer(int numberOfImages) {
         Command cmd = new Command("start", numberOfImages, null, null);
         sendCommand(cmd);
     }
 
-    public void setAutoOffToServer(){
+    public void setAutoOffToServer() {
         Command cmd = new Command("stop", 0, null, null);
         sendCommand(cmd);
     }
 
-
-    public void setManualDirectionsToServer(boolean[] wasd, int speed){
+    public void setManualDirectionsToServer(boolean[] wasd, int speed) {
         Command cmd = new Command("manual", speed, wasd, null);
         sendCommand(cmd);
-
     }
 
-    public void setManualOnToServer(){
+    public void setManualOnToServer() {
         boolean[] wasd = new boolean[4];
         Command cmd = new Command("manual", 0, wasd, null);
         sendCommand(cmd);
     }
 
-    public void setManualOffToServer(){
-        Command cmd = new Command("manualStop", 0, null, null);
+    public void setManualOffToServer() {
+        boolean[] wasd = new boolean[4];
+        Command cmd = new Command("manualStop", 0, wasd, null);
+        sendCommand(cmd);
+    }
+
+    public void setUgvIdToServer(int ugvId) {
+        Command cmd = new Command("UGVSelected", ugvId, null, null);
+        sendCommand(cmd);
+    }
+
+    public void askObjectFile() {
+        Command cmd = new Command("updateObjectFile", 0, null, null);
+        sendCommand(cmd);
+    }
+
+    public void askServerProgress() {
+        Command cmd = new Command("updateProgress", 0, null, null);
         sendCommand(cmd);
     }
 
 
-    public void setUgvIdToServer(int ugvId){
-        Command cmd = new Command("UGVSelected", ugvId, null, null);
-        sendCommand(cmd);
+    /**
+     * Tries to receive an ObjectFile from server
+     * @return Returns the ObjectFile from server
+     */
+    public ObjectFile receiveObjectFile() {
+        Object objectFromServer = receiveObject();
+        // Instance of ImageObject from server
+        ObjectFile objectFileFromServer = null;
+        if (objectFromServer instanceof ObjectFile) {
+            objectFileFromServer = (ObjectFile) objectFromServer;
+        }
+        return objectFileFromServer;
+    }
+
+    /**
+     * Tries to receive an ImageObject from server
+     * @return Returns the ImageObject from server
+     */
+    public ImageObject receiveImageObject() {
+        Object objectFromServer = receiveObject();
+        ImageObject imageObjectFromServer = null;
+        if (objectFromServer instanceof ImageObject) {
+            imageObjectFromServer = (ImageObject) objectFromServer;
+        }
+        return imageObjectFromServer;
+    }
+
+    /**
+     * Tries to receive an Command from server
+     * @return Returns the Command from server
+     */
+    public Command receiveCommand() {
+        Object objectFromServer = receiveObject();
+        Command commandFromServer = null;
+        if (objectFromServer instanceof Command) {
+            commandFromServer = (Command) objectFromServer;
+        }
+        return commandFromServer;
     }
 
     //---------------------- Server Protocol End ----------------------//
