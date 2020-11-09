@@ -164,13 +164,13 @@ public class GUIController {
         this.imagesNumberList.setItems(FXCollections.observableArrayList(listImages));
 
 
-        this.progressText.add(0,"Starting Meshroom Progress...");
-        this.progressText.add(1,"CameraInit...");
+        this.progressText.add(0, "Starting Meshroom Progress...");
+        this.progressText.add(1, "CameraInit...");
         this.progressText.add(2, "FeatureExtraction...");
         this.progressText.add(3, "ImageMatching...");
         this.progressText.add(4, "FeatureMatching...");
         this.progressText.add(5, "StructureFromMotion...");
-        this.progressText.add(6,"PrepareDenseScene...");
+        this.progressText.add(6, "PrepareDenseScene...");
         this.progressText.add(7, "CameraConnection...");
         this.progressText.add(8, "DepthMap...");
         this.progressText.add(9, "DepthMapFilter...");
@@ -274,6 +274,118 @@ public class GUIController {
         });
     }
 
+
+    ///////////////////////////////// UPDATE GUI METHODS ///////////////////////////////////
+    private void updateAutoManualStatus() {
+        // If not connection to server and illegal UGV ID
+        if (!this.tcpClient.isConnectionActive() || (this.ugvId == -1)) {
+            // Set to default conditions
+            this.manualCondition = "Off";
+            this.autoCondition = "Off";
+
+            // Update state on buttons on GUI
+            this.manualModeButton.setDisable(true);
+            this.startButton.setDisable(true);
+        } else {
+            // Update state on buttons on GUI
+            this.manualModeButton.setDisable(false);
+            this.startButton.setDisable(false);
+
+        }
+        Platform.runLater(() -> {
+            // Update text on buttons
+            this.startButton.setText("Auto: " + this.autoCondition);
+            this.manualModeButton.setText("Manual: " + this.manualCondition);
+        });
+    }
+
+    /**
+     * This method checks the connection to UGV ID and updates GUI accordingly
+     */
+    private void updateUgvIdStatus() {
+        // When no connection to server, set UGV ID to default value -1 (illegal)
+        if (!this.tcpClient.isConnectionActive()) {
+            this.ugvId = -1;
+            this.ugvCheckBox = false;
+        }
+
+        // Disable selectUgvButton when list of UGV's is empty
+        if ((this.ugvIdList != null) && (this.ugvIdList.isEmpty())) {
+            this.ugvId = -1;
+            this.ugvCheckBox = false;
+        }
+
+        // Update select button when the list does not contain the current UGV ID and update
+        if ((this.ugvIdList != null) && (!this.ugvIdList.contains(Integer.toString(this.ugvId)))) {
+            this.ugvId = -1;
+            this.ugvCheckBox = false;
+        } else if ((this.ugvIdList != null) && (this.ugvIdList.contains(Integer.toString(this.ugvId)))) {
+            this.ugvCheckBox = true;
+        }
+
+        // If ugvId is a legal ID disable selectUgvButton
+        if (ugvId != -1) {
+            this.selectUgvButton.setDisable(true);
+            this.ugvCheckBox = true;
+        } else {
+            this.selectUgvButton.setDisable(false);
+            this.ugvCheckBox = false;
+        }
+
+        // Clear and update UGV list on GUI when connection is lost
+        if (!this.tcpClient.isConnectionActive() && (ugvIdList != null)) {
+            this.ugvIdList.clear();
+            this.obsListUgv = FXCollections.observableArrayList(this.ugvIdList);
+        }
+    }
+
+
+    /**
+     * This method checks the connection state to server and updates GUI accordingly
+     */
+    private void updateConnectionStatus() {
+        if (this.tcpClient.isConnectionActive()) {
+            // When connection is active set connectionCondition to "connected"
+            this.connectionCondition = "connected";
+            Platform.runLater(() -> {
+                // Update server status checkbox on GUI
+                this.connectionCheckBox.setSelected(true);
+                // Update connection button to "Disconnect" on GUI
+                this.connectButton.setText("Disconnect");
+            });
+            // Disable host and port field on GUI
+            this.hostField.setDisable(true);
+            this.portField.setDisable(true);
+        } else {
+            // When connection is NOT active set connectionCondition to "notConnected"
+            this.connectionCondition = "notConnected";
+            Platform.runLater(() -> {
+                // Update server status checkbox on GUI
+                this.connectionCheckBox.setSelected(false);
+                // Update connection button to "Connect" on GUI
+                this.connectButton.setText("Connect");
+            });
+            // Enable host and port field on GUI
+            this.hostField.setDisable(false);
+            this.portField.setDisable(false);
+        }
+    }
+
+    private void updatePing() {
+        if (this.tcpClient.isConnectionActive()) {
+            Platform.runLater(() -> {
+                this.statusPane.setText("Ping: " + this.tcpClient.getPing() + "ms");
+            });
+        } else {
+            Platform.runLater(() -> {
+                this.statusPane.setText("Status");
+            });
+        }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+
     private void updateGui() {
         if (this.updateButtonThread == null) {
             // A thread for updating buttons on GUI
@@ -282,95 +394,30 @@ public class GUIController {
                 long threadId = Thread.currentThread().getId();
                 System.out.println("Starting update buttons thread thread " + threadId);
 
-                boolean exitThread = true;
-                while (exitThread) {
+                boolean exitThread = false;
+                while (!exitThread) {
+                    // Update connection status on GUI
+                    updateConnectionStatus();
 
-                    // If not connection to server and illegal UGV ID
-                    if (!this.tcpClient.isConnectionActive() || (this.ugvId == -1)) {
-                        this.manualCondition = "Off";
-                        this.autoCondition = "Off";
-                        this.manualModeButton.setDisable(true);
-                        this.startButton.setDisable(true);
-                        this.ugvId = -1;
-                    } else {
-                        this.manualModeButton.setDisable(false);
-                        this.startButton.setDisable(false);
-                    }
+                    // Update ping to server on GUI
+                    updatePing();
 
+                    // Updates the UGV ID
+                    updateUgvIdStatus();
+
+                    // Updates the progress bar on GUI when server is processing 3D model
                     updateProgressBar();
 
-                    // Disable selectUgvButton when list of UGV's is empty
-                    if ((this.ugvIdList != null) && (this.ugvIdList.isEmpty())) {
-                        this.selectUgvButton.setDisable(true);
-                        this.ugvId = -1;
-                        this.ugvCheckBox = false;
-                    }
-                    if ((this.ugvIdList != null) && (!this.ugvIdList.contains(Integer.toString(this.ugvId)))) {
-                        this.selectUgvButton.setDisable(false);
-                        this.ugvId = -1;
-                        this.ugvCheckBox = false;
-                    } else if ((this.ugvIdList != null) && (this.ugvIdList.contains(Integer.toString(this.ugvId)))) {
-                        this.ugvCheckBox = true;
-                    }
-                    // If ugvId is a legal ID disable selectUgvButton
-                    if (ugvId != -1) {
-                        this.selectUgvButton.setDisable(true);
-                        this.ugvCheckBox = true;
-                    } else {
-                        this.selectUgvButton.setDisable(false);
-                        this.ugvCheckBox = false;
-                    }
+                    // Updates manual and auto state on GUI if disconnected from server or UGV
+                    updateAutoManualStatus();
 
-
-                    // Update UGV list on GUI
-                    if (!this.tcpClient.isConnectionActive() && (ugvIdList != null)) {
-                        this.ugvIdList.clear();
-                        this.obsListUgv = FXCollections.observableArrayList(this.ugvIdList);
-                    }
-
-
-                    // TODO:
-
-                    if (this.tcpClient.isConnectionActive()) {
-                        // When connection is active set connectionCondition to "connected"
-                        this.connectionCondition = "connected";
-                        Platform.runLater(() -> {
-                            // Update server status checkbox on GUI
-                            this.connectionCheckBox.setSelected(true);
-                            // Update connection button to "Disconnect" on GUI
-                            this.connectButton.setText("Disconnect");
-                        });
-                        // Disable host and port field on GUI
-                        this.hostField.setDisable(true);
-                        this.portField.setDisable(true);
-                    } else {
-                        // When connection is NOT active set connectionCondition to "notConnected"
-                        this.connectionCondition = "notConnected";
-                        Platform.runLater(() -> {
-                            // Update server status checkbox on GUI
-                            this.connectionCheckBox.setSelected(false);
-                            // Update connection button to "Connect" on GUI
-                            this.connectButton.setText("Connect");
-                        });
-                        // Enable host and port field on GUI
-                        this.hostField.setDisable(false);
-                        this.portField.setDisable(false);
-                    }
 
                     // Update ImageView on GUI
                     if (this.liveImage != null && this.ugvImage != null) {
-                        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                        this.liveImage.setScaleX(this.liveStreamPane.getMaxWidth());
-//                        this.liveImage.setScaleY(this.liveStreamPane.getMaxHeight());
-
+                        // Fit the image to the pane on GUI
                         this.liveImage.fitWidthProperty().bind(liveStreamPane.widthProperty());
                         this.liveImage.fitHeightProperty().bind(liveStreamPane.heightProperty());
 
-//                        this.liveImage.setFitWidth(this.ugvImage.getWidth());
-//                        this.liveImage.setFitHeight(this.ugvImage.getHeight());
-
-
-                        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                         // Update ImageView on GUI
                         this.liveImage.setImage(ugvImage);
                     }
@@ -384,8 +431,6 @@ public class GUIController {
                         this.ugvStatusCheckBox.setText("Connected to UGV" + this.ugvId);
                         this.listOfUGVs.setItems(obsListUgv);
 
-
-                        this.statusPane.setText("Ping: " + this.tcpClient.getPing() + "ms");
                     });
 
 
@@ -489,26 +534,27 @@ public class GUIController {
                     // If ObjectFile is not null, then save to Desktop
                     if (objectFileFromServer != null) {
 
+                        // Get file bytes from ObjectFile from server
                         byte[] objectFileBytes = objectFileFromServer.getObjFile();
-
                         byte[] mtlFileBytes = objectFileFromServer.getMtlFile();
-
                         byte[] pngBytes = objectFileFromServer.getPngFile();
 
-
+                        // Create new files
                         File fileObj = new File(System.getProperty("user.home"), objectFileFromServer.getObjFileName());
                         File fileMtl = new File(System.getProperty("user.home"), objectFileFromServer.getMtlFileName());
                         File filePng = new File(System.getProperty("user.home"), objectFileFromServer.getPngFileName());
 
+                        // Try to save the files to default home location on PC
                         try {
                             Files.write(Path.of(fileObj.getPath()), objectFileBytes);
                             Files.write(Path.of(fileMtl.getPath()), mtlFileBytes);
                             Files.write(Path.of(filePng.getPath()), pngBytes);
+                            System.out.println("All files saved succesfully!");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
-
+                        // Exits thread
                         exitThread = true;
                     }
                     try {
@@ -566,7 +612,6 @@ public class GUIController {
                 while (this.tcpClient.isConnectionActive()) {
                     // Ask for UGV list from server
                     this.tcpClient.askUgvListFromServer();
-
                     // Try to receive object from server
                     Command cmdFromServer = this.tcpClient.receiveCommand();
 
@@ -629,10 +674,11 @@ public class GUIController {
                             // Convert the BufferedImage to Image
                             ugvImage = SwingFXUtils.toFXImage(bImage, null);
                             imageCounter++;
-                            System.out.println("-----------------------------------------------" + imageCounter);
+                            System.out.println("----------------------------------------------- Image count:" + imageCounter);
                         }
 
                         if (imageCounter == autoUgvImages) {
+                            // Set autoCondition to "Off" when all images has received
                             this.autoCondition = "Off";
                         }
                     }
