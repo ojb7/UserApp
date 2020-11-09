@@ -5,7 +5,6 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLOutput;
 
 
 public class App extends javafx.application.Application {
