@@ -6,7 +6,14 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 
-
+/**
+ * This project is the main project in the course Real-Time Programming at NTNU in Ålesund.
+ *
+ * Main App class. Starts the application and GUI.
+ *
+ * @author Ole Jørgen Buljo
+ * @version 0.1
+ */
 public class App extends javafx.application.Application {
 
     @Override

@@ -27,6 +27,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This GUIController class handles all user interaction with the GUI
+ *
+ * @author Ole Jørgen Buljo
+ */
 public class GUIController {
     @FXML
     private TextField portField;
@@ -314,7 +319,7 @@ public class GUIController {
      */
     @FXML
     void startStopUgv(ActionEvent event) {
-        if ((this.ugvId != -1) && (this.manualCondition.equalsIgnoreCase("Off"))) {
+        if ((this.ugvId != -1) && (this.manualCondition.equalsIgnoreCase("Off")) && (this.autoUgvImages > 0)) {
             if (this.autoCondition.equals("Off")) {
                 // Update start/stop condition
                 this.autoCondition = "On";

@@ -3,6 +3,11 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * This TCPClient class is used to connect, send and receive objects from remote server (host)
+ *
+ * @author Ole Jørgen Buljo
+ */
 public class TCPClient {
     private Socket connection;
     private ObjectOutputStream toServer;
@@ -45,7 +50,7 @@ public class TCPClient {
     }
 
     /**
-     * Disconnect from server
+     * Method to disconnect from server
      */
     public synchronized void disconnect() {
         System.out.println("Trying to disconnect...");
@@ -66,7 +71,7 @@ public class TCPClient {
     }
 
     /**
-     * Checks if the connection to the server is active
+     * Method to check if the connection to the server is active
      *
      * @return Returns true if connection is active
      */
@@ -75,7 +80,7 @@ public class TCPClient {
     }
 
     /**
-     * Tries to send a command to the UGV server
+     * Method to try to send a command to the UGV server
      *
      * @param cmd Command to be sent to server
      */
@@ -122,8 +127,9 @@ public class TCPClient {
     }
 
     /**
+     * Method to retrieve ping to remote server
      *
-     * @return
+     * @return Returns the ping to the remote server
      */
     public long getPing(){
         long ping = this.timeReceived - this.timeSent;
@@ -137,63 +143,105 @@ public class TCPClient {
 
     //---------------------- Server Protocol Start ----------------------//
 
+    /**
+     * Creates and sends a command to remote server, "updateUGVList"
+     */
     public void askUgvListFromServer() {
         Command cmd = new Command("updateUGVList", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "updateServerImage"
+     */
     public void askServerImageFromServer() {
         Command cmd = new Command("updateServerImage", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "updateUGVImage"
+     */
     public void askUgvImageFromServer() {
         Command cmd = new Command("updateUGVImage", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "User"
+     */
     public void setUserStateToServer() {
         Command cmd = new Command("User", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "start"
+     */
     public void setAutoOnToServer(int numberOfImages) {
         Command cmd = new Command("start", numberOfImages, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "stop"
+     */
     public void setAutoOffToServer() {
         Command cmd = new Command("stop", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "manual"
+     *
+     * @param wasd The boolean array of the key states "WASD"
+     * @param speed The speed the UGV should drive
+     */
     public void setManualDirectionsToServer(boolean[] wasd, int speed) {
         Command cmd = new Command("manual", speed, wasd, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "manual"
+     */
     public void setManualOnToServer() {
         boolean[] wasd = new boolean[4];
         Command cmd = new Command("manual", 0, wasd, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "manualStop"
+     */
     public void setManualOffToServer() {
         boolean[] wasd = new boolean[4];
         Command cmd = new Command("manualStop", 0, wasd, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "UGVSelected"
+     *
+     * @param ugvId The UGV ID
+     */
+
     public void setUgvIdToServer(int ugvId) {
         Command cmd = new Command("UGVSelected", ugvId, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "updateObjectFile"
+     */
     public void askObjectFile() {
         Command cmd = new Command("updateObjectFile", 0, null, null);
         sendCommand(cmd);
     }
 
+    /**
+     * Creates and sends a command to remote server, "updateProgress"
+     */
     public void askServerProgress() {
         Command cmd = new Command("updateProgress", 0, null, null);
         sendCommand(cmd);
